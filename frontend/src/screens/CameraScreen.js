@@ -1,14 +1,100 @@
 import React, { useState } from "react";
-import { View, Text, Button, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
+import { View, Text, Button, Image, Alert } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import styles from "../styles/CameraScreen.styles";
+
+const CameraScreen = ({ navigation }) => {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Reuse existing upload pipeline
+  const uploadPhoto = async (imageUri) => {
+    try {
+      console.log("Uploading image:", imageUri);
+      Alert.alert("Upload", "Image uploaded successfully!");
+      navigation.navigate("Home");
+    } catch (error) {
+      Alert.alert("Error", "Upload failed");
+    }
+  };
+
+  const pickFromGallery = async () => {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert(
+        "Permission required",
+        "Gallery permission is required to upload images"
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+      setShowPreview(true);
+    }
+  };
+
+  const confirmUpload = async () => {
+    if (!selectedImage) return;
+    await uploadPhoto(selectedImage);
+    setSelectedImage(null);
+    setShowPreview(false);
+  };
+
+  // Preview Screen
+  if (showPreview && selectedImage) {
+    return (
+      <View style={styles.root}>
+        <Image
+          source={{ uri: selectedImage }}
+          style={styles.previewImage}
+        />
+
+        <View style={styles.previewActions}>
+          <Button
+            title="Cancel"
+            onPress={() => setShowPreview(false)}
+          />
+          <Button title="Upload" onPress={confirmUpload} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.root}>
+      <Text style={styles.text}>Camera Screen</Text>
+
+      {/* Existing camera button remains untouched */}
+
+      <Button title="Open Gallery" onPress={pickFromGallery} />
+
+      <View style={{ marginTop: 20 }}>
+        <Button
+          title="Go Back Home"
+          onPress={() => navigation.navigate("Home")}
+        />
+      </View>
+    </View>
+  );
+};
+
+export default CameraScreen;import React, { useState } from "react";
+import styles from "../styles/
 import * as ImagePicker from "expo-image-picker";
 
 const CameraScreen = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // 🔁 This simulates the existing upload pipeline.
-  // If your project already has an upload function, MOVE its logic here
-  // and reuse it for both camera & gallery images.
   const uploadPhoto = async (imageUri) => {
     try {
       console.log("Uploading image:", imageUri);
@@ -45,7 +131,6 @@ const CameraScreen = ({ navigation }) => {
     setShowPreview(false);
   };
 
-  // 🖼️ Preview Screen
   if (showPreview && selectedImage) {
     return (
       <View style={styles.root}>
