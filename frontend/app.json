@@ -10,27 +10,31 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.snapmap.app"
+      "bundleIdentifier": "com.snapmap.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Snap Map to access your camera.",
+        "NSLocationWhenInUseUsageDescription": "Allow Snap Map to access your location while using the app."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./src/assets/images/android-icon-foreground.png",
+        "foregroundImage": "./src/assets/images/icon.png",
         "backgroundImage": "./src/assets/images/android-icon-background.png",
         "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
       },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
       "edgeToEdgeEnabled": true,
       "package": "com.snapmap.app"
     },
     "web": {
-      "output": "single",
-      "favicon": "./src/assets/images/favicon.png"
+      "output": "single"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/images/splash-icon.png",
+          "image": "./src/assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

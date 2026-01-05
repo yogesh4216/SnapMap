@@ -1,12 +1,18 @@
-const express = require("express");
+import express from "express"
+import healthRoute from "../backend/routes/health.js";
+import authRoute from "../backend/routes/auth.js";
+import photoRoute from "../backend/routes/photo.js";
+
 
 const router = express.Router();
-const healthRoute = require("../backend/routes/health");
-const authRoute = require ("../backend/routes/auth");
+
 router.use("/health", healthRoute);
 router.use("/auth", authRoute);
+router.use("/photos", photoRoute);
+
+
 router.get("/", (req, res) => {
     res.send("SnapMap API v1");
 });
 
-module.exports = router;
+export default router

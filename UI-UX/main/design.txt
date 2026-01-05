@@ -3,7 +3,7 @@ Banner: https://www.canva.com/design/DAG8sdO6W5s/H_soqoen06ZrVldwsabJYw/edit?utm
 Combined: https://www.canva.com/design/DAG8sWTfVbA/UpjUMzVuuWQ-pHys3sbdWA/edit?utm_content=DAG8sWTfVbA&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
 
-SNAP-MAP(SET-1) – UI Design System
+SNAP-MAP – UI Design System
 
 Fonts:
 - Primary Font: Quickstand
@@ -15,4 +15,4 @@ Official Colour Pallete - The one in the design reference
 Screen Size:
 - Mobile Resolution: 360 × 800 (Android)
 
-Set 01 Figma Link: https://www.figma.com/design/eDx0s8hl4maz7gBTOMwsNt/SNAP-MAP-Screen-Design-01?node-id=0-1&t=ilWBmZzyQi0nGLfg-1
+Final Figma : https://www.figma.com/design/EYPkhMV6IvNzmH28nVwQd8/SnapMap?node-id=1-4040&p=f&t=pgtNaPtWNU5ayGNi-0

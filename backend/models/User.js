@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"
 
 const UserSchema = new mongoose.Schema({
   clerkUserId: {
@@ -15,10 +15,38 @@ const UserSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  collegeName: {
+    type: String,
+    required: true,
+  },
+  phoneNumber: {
+    type: String,
+
+  },
+  year: {
+    type: String,
+
+  },
+  gender: {
+    type: String,
+    enum: ["male", "female", "others"],
+
+  },
+  role: {
+    type: String,
+    default: "USER",
+
+  },
+  isBanned: {
+    type: Boolean,
+    default: false,
+
+  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-module.exports = mongoose.model('User', UserSchema);
+const User =  mongoose.model('User', UserSchema);
+export default User

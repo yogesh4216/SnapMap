@@ -4,12 +4,17 @@ import * as ImagePicker from "expo-image-picker";
 import styles from "../styles/CameraScreen.styles";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
-type Props = NativeStackScreenProps<any>;
+type RootStackParamList = {
+  Home: undefined;
+};
+
+type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 const CameraScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState<boolean>(false);
 
+  // Reuse existing upload pipeline
   const uploadPhoto = async (imageUri: string): Promise<void> => {
     try {
       console.log("Uploading image:", imageUri);
@@ -51,6 +56,7 @@ const CameraScreen: React.FC<Props> = ({ navigation }) => {
     setShowPreview(false);
   };
 
+  // Preview screen
   if (showPreview && selectedImage) {
     return (
       <View style={styles.root}>
