@@ -1,36 +1,40 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
-import * as Location from "expo-location";
-import type { CameraType, FlashMode } from "expo-camera";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
-  Image,
+  View,
   Text,
   TouchableOpacity,
-  View,
+  StyleSheet,
+  Alert,
+  Image,
 } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-import type { ScreenProps } from "../types";
-import CameraStyle from "../styles/CameraStyle";
+import type { CameraType } from "expo-camera";
 
-const styles = CameraStyle;
-
-export default function CameraScreen({
-  navigation,
-}: ScreenProps<"CameraScreen">) {
+export default function CameraScreen() {
   const cameraRef = useRef<CameraView | null>(null);
 
-  const [facing, setFacing] = useState<CameraType>("back");
-  const [flash, setFlash] = useState<FlashMode>("off");
   const [permission, requestPermission] = useCameraPermissions();
-  const [isCameraOk, setIsCameraOk] = useState(false);
-
-  useEffect(() => {
-    Location.requestForegroundPermissionsAsync();
-  }, []);
+  const [facing, setFacing] = useState<CameraType>("back");
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
 
   /* -------------------- Permissions -------------------- */
-  if (!permission) return <View />;
+  useEffect(() => {
+    (async () => {
+      const galleryPermission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!galleryPermission.granted) {
+        Alert.alert(
+          "Permission required",
+          "Gallery permission is required."
+        );
+      }
+    })();
+  }, []);
+
+  if (!permission) {
+    return <View />;
+  }
 
   if (!permission.granted) {
     return (
@@ -38,125 +42,181 @@ export default function CameraScreen({
         <Text style={styles.permissionText}>
           Camera permission is required
         </Text>
-        <TouchableOpacity
-          style={styles.permissionButton}
-          onPress={requestPermission}
-        >
-          <Text style={styles.permissionButtonText}>Grant Permission</Text>
+        <TouchableOpacity onPress={requestPermission} style={styles.permissionBtn}>
+          <Text style={styles.permissionBtnText}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  /* -------------------- Helpers -------------------- */
-  const toggleCameraFacing = () => {
-    setFacing((current) => (current === "back" ? "front" : "back"));
-  };
-
-  const toggleFlash = () => {
-    setFlash((current) => (current === "off" ? "on" : "off"));
-  };
-
-  const ensureLocation = async () => {
-    const { status } =
-      await Location.getForegroundPermissionsAsync();
-
-    if (status === "granted") {
-      return await Location.getCurrentPositionAsync({});
-    }
-
-    return null;
-  };
-
-  /* -------------------- Camera Capture -------------------- */
-  const handleCapture = async () => {
-    if (!cameraRef.current || !isCameraOk) return;
+  /* -------------------- Camera Actions -------------------- */
+  const takePhoto = async () => {
+    if (!cameraRef.current) return;
 
     const photo = await cameraRef.current.takePictureAsync();
-    const location = await ensureLocation();
-
-    navigation.navigate("UploadConfirmationScreen", {
-      photo,
-      location,
-    });
+    setPreviewUri(photo.uri);
   };
 
-  /* -------------------- Gallery Picker -------------------- */
   const pickFromGallery = async () => {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      Alert.alert(
-        "Permission required",
-        "Gallery permission is required"
-      );
-      return;
-    }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
 
     if (!result.canceled) {
-      navigation.navigate("UploadConfirmationScreen", {
-        photo: { uri: result.assets[0].uri },
-        location: null,
-      });
+      setPreviewUri(result.assets[0].uri);
     }
   };
 
-  /* -------------------- UI -------------------- */
+  const flipCamera = () => {
+    setFacing((prev) => (prev === "back" ? "front" : "back"));
+  };
+
+  /* -------------------- Preview Screen -------------------- */
+  if (previewUri) {
+    return (
+      <View style={styles.previewContainer}>
+        <Image source={{ uri: previewUri }} style={styles.previewImage} />
+
+        <View style={styles.previewActions}>
+          <TouchableOpacity
+            style={styles.previewBtn}
+            onPress={() => setPreviewUri(null)}
+          >
+            <Text style={styles.previewText}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.previewBtn}
+            onPress={() => {
+              Alert.alert("Success", "Image ready for upload");
+              setPreviewUri(null);
+            }}
+          >
+            <Text style={styles.previewText}>Upload</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  /* -------------------- Camera Screen -------------------- */
   return (
     <View style={styles.container}>
-      {/* Camera */}
       <CameraView
         ref={cameraRef}
         style={styles.camera}
         facing={facing}
-        flash={flash}
-        onCameraReady={() => setIsCameraOk(true)}
       />
 
-      {/* Top Controls (Flash) */}
-      <View style={styles.topControls}>
-        <TouchableOpacity
-          style={styles.topButton}
-          onPress={toggleFlash}
-        >
-          <Text style={styles.topButtonText}>
-            Flash {flash === "on" ? "On" : "Off"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Bottom Controls */}
-      <View style={styles.bottomControls}>
-        {/* Gallery (LEFT) */}
-        <TouchableOpacity
-          style={styles.sideButton}
-          onPress={pickFromGallery}
-        >
+      <View style={styles.controls}>
+        <TouchableOpacity onPress={pickFromGallery}>
           <Text style={styles.controlText}>Gallery</Text>
         </TouchableOpacity>
 
-        {/* Shutter (CENTER) */}
-        <TouchableOpacity
-          style={styles.shutterOuter}
-          onPress={handleCapture}
-        >
-          <View style={styles.shutterInnerButton} />
+        <TouchableOpacity style={styles.shutter} onPress={takePhoto}>
+          <View style={styles.shutterInner} />
         </TouchableOpacity>
 
-        {/* Flip Camera (RIGHT) */}
-        <TouchableOpacity
-          style={styles.sideButton}
-          onPress={toggleCameraFacing}
-        >
+        <TouchableOpacity onPress={flipCamera}>
           <Text style={styles.controlText}>Flip</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
+
+/* -------------------- Styles -------------------- */
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  camera: {
+    flex: 1,
+  },
+
+  /* Controls */
+  controls: {
+    position: "absolute",
+    bottom: 40,
+    width: "100%",
+    paddingHorizontal: 30,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  controlText: {
+    color: "white",
+    fontSize: 16,
+    minWidth: 60,
+    textAlign: "center",
+  },
+
+  /* Shutter */
+  shutter: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 4,
+    borderColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  shutterInner: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "white",
+  },
+
+  /* Preview */
+  previewContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  previewImage: {
+    width: "90%",
+    height: "70%",
+    borderRadius: 10,
+  },
+  previewActions: {
+    flexDirection: "row",
+    marginTop: 20,
+    gap: 20,
+  },
+  previewBtn: {
+    padding: 12,
+    backgroundColor: "#e74c3c",
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: "center",
+  },
+  previewText: {
+    color: "white",
+    fontSize: 16,
+  },
+
+  /* Permission */
+  permissionContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "black",
+  },
+  permissionText: {
+    color: "white",
+    marginBottom: 20,
+  },
+  permissionBtn: {
+    backgroundColor: "#e74c3c",
+    padding: 12,
+    borderRadius: 8,
+  },
+  permissionBtnText: {
+    color: "white",
+    fontSize: 16,
+  },
+});
